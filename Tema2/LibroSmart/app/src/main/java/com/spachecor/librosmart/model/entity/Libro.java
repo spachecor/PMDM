@@ -1,7 +1,9 @@
 package com.spachecor.librosmart.model.entity;
 
+import java.util.Objects;
+
 public class Libro {
-    private Integer isbn;
+    private Long isbn;
     private String titulo;
     private String autor;
     private Integer nPaginas;
@@ -9,7 +11,7 @@ public class Libro {
 
     public Libro() {}
 
-    public Libro(Integer isbn, String titulo, String autor, Integer nPaginas, String opinion) {
+    public Libro(Long isbn, String titulo, String autor, Integer nPaginas, String opinion) {
         this.isbn = isbn;
         this.titulo = titulo;
         this.autor = autor;
@@ -28,11 +30,24 @@ public class Libro {
                 '}';
     }
 
-    public Integer getIsbn() {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Libro libro = (Libro) o;
+        return Objects.equals(isbn, libro.isbn);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(isbn);
+    }
+
+    public Long getIsbn() {
         return isbn;
     }
 
-    public void setIsbn(Integer isbn) {
+    public void setIsbn(Long isbn) {
         this.isbn = isbn;
     }
 

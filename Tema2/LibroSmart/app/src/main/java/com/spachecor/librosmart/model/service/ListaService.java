@@ -1,10 +1,14 @@
 package com.spachecor.librosmart.model.service;
 
+import android.content.Context;
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.spachecor.librosmart.model.entity.Lista;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,23 +17,36 @@ import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ListaService {
-    private static final String FILE_PATH = "src/resources/com/spachecor/librosmart/json/listas.json";
+    private final File file;
     private final Gson gson;
+    private List<Lista> listas;
 
-    public ListaService() {
+    public ListaService(Context context) {
+        file = new File(context.getFilesDir(), "listas.json");
+        try{
+            if(!file.exists())file.createNewFile();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         gson = new GsonBuilder().setPrettyPrinting().create();
+        listas = obtenerListas();
+        Log.d("ListaService", "Ruta del archivo: " + file.getAbsolutePath());
     }
 
     /**
      * Método que obtiene una lista de listas de libros
      * @return Una lista de listas de libros
      */
-    public List<Lista> obtenerListas(){
-        try(Reader reader = new FileReader(FILE_PATH)){
+    private List<Lista> obtenerListas(){
+        try(Reader reader = new FileReader(file)){
             Type listType = new TypeToken<List<Lista>>(){}.getType();
-            return gson.fromJson(reader, listType);
+            List<Lista> listasTemp =gson.fromJson(reader, listType);
+            if(listasTemp==null){
+                return new ArrayList<>();
+            }else return listasTemp;
         }catch (IOException e){
             return new ArrayList<>();
         }
@@ -37,15 +54,48 @@ public class ListaService {
 
     /**
      * Método que guarda una lista de listas de libros en el archivo json
-     * @param listas La lista de listas de libros a guardar
      * @return true o false según si se ha conseguido guardar la lista
      */
-    public boolean guardarListas(List<Lista> listas){
-        try(Writer writer = new FileWriter(FILE_PATH)){
+    private boolean guardarListas(){
+        try(Writer writer = new FileWriter(file)){
             gson.toJson(listas, writer);
             return Boolean.TRUE;
         }catch (IOException e){
             return Boolean.FALSE;
         }
+    }
+
+    /**
+     * Método que agrega una nueva lista a las listas contenidas ne el json
+     *
+     * @return true o false según si se realiza correctamente o no
+     */
+    public boolean agregarLista(Lista lista){
+        if(!listas.contains(lista)){
+            listas.add(lista);
+            guardarListas();
+            return Boolean.TRUE;
+        }else return Boolean.FALSE;
+    }
+
+    /**
+     * Método que elimina una lista de las listas contenidas en el json
+     * @param nombre El nombre de la lista a eliminar
+     * @return true o false según si se elimina o no
+     */
+    public boolean eliminarLista(String nombre){
+        //el método removeIf, que toma un argumento que es un predicado y define la condición de
+        //eliminación(revisa toda la lista con esa condición)
+        boolean eliminado = listas.removeIf(l -> Objects.equals(l.getNombre(), nombre));
+        if(eliminado){
+            return guardarListas();
+        }else return Boolean.FALSE;
+    }
+    /**
+     * Método que obtiene todas las listas del json
+     * @return Una lista con las listas
+     */
+    public List<Lista> obtenerTodasListas(){
+        return new ArrayList<>(listas);
     }
 }
