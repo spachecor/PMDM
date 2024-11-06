@@ -26,14 +26,15 @@ public class ListaService {
 
     public ListaService(Context context) {
         file = new File(context.getFilesDir(), "listas.json");
-        try{
-            if(!file.exists())file.createNewFile();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
         gson = new GsonBuilder().setPrettyPrinting().create();
-        listas = obtenerListas();
-        Log.d("ListaService", "Ruta del archivo: " + file.getAbsolutePath());
+
+        // Si el archivo no existe, créalo vacío
+        if (!file.exists()) {
+            listas = new ArrayList<>();
+            guardarListas();
+        } else {
+            listas = obtenerListas();
+        }
     }
 
     /**
