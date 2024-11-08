@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
@@ -55,25 +56,26 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomePage(innerPadding: PaddingValues){
-    Column (
+fun HomePage(innerPadding: PaddingValues) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .padding(innerPadding)
-    ){
-        var listas = listaService.obtenerTodasListas()
-        //barra de búsqueda de libros
+    ) {
+        val listas = listaService.obtenerTodasListas()
+
+        // Barra de búsqueda de libros
         BarraNavegacionListas(listas)
-        //en esta fila está el título de lista y el botón para crear una nueva
-        Row (
+
+        // Título de listas y botón de nueva lista
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
-        ){
-            //titulo
+        ) {
             Text(
                 text = "Listas",
                 style = MaterialTheme.typography.bodyLarge.copy(
@@ -81,12 +83,7 @@ fun HomePage(innerPadding: PaddingValues){
                     fontSize = 24.sp
                 )
             )
-            //boton de nueva lista
-            Button(
-                onClick = {
-                    println("Me pulsaste!!")
-                }
-            ) {
+            Button(onClick = { println("Me pulsaste!!") }) {
                 Icon(
                     Icons.Default.Add,
                     contentDescription = "Agregar nueva lista",
@@ -95,17 +92,25 @@ fun HomePage(innerPadding: PaddingValues){
                 )
             }
         }
-        //tarjetas
-        for ((index, item) in listas.withIndex()) {
-            if (index >= listas.size - 1) {
-                ListasCard(item.nombre)  // Pasa el valor de item convertido a String
-            }else{
-
+        LazyColumn {
+            var aux = ""
+            items(listas.size) { index ->
+                val item = listas[index]
+                if ((index % 2 == 0 && index >= listas.size - 1) || listas.size == 1) {
+                    ListasCard(item.nombre)
+                } else {
+                    if (aux.isNotEmpty()) {
+                        ListasCard(aux, item.nombre)
+                        aux = ""
+                    } else {
+                        aux = item.nombre
+                    }
+                }
             }
         }
-        ListasCard("Por leer", "Leídos")
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
