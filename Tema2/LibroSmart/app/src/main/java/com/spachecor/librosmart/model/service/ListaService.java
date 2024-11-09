@@ -6,6 +6,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.spachecor.librosmart.model.entity.Libro;
 import com.spachecor.librosmart.model.entity.Lista;
 
 import java.io.File;
@@ -98,5 +99,20 @@ public class ListaService {
      */
     public List<Lista> obtenerTodasListas(){
         return new ArrayList<>(listas);
+    }
+    public Lista obtenerLista(String nombreLista){
+        //actualizamos las listas
+        listas = obtenerListas();
+        for(Lista lista: listas){
+            if(lista.getNombre().equals(nombreLista))return lista;
+        }
+        return null;
+    }
+    public Libro obtenerLibro(Lista lista, Long isbn){
+        Libro libro = null;
+        for(Libro libroTemp: lista.getLibros()){
+            if(libroTemp.getIsbn().equals(isbn))libro=libroTemp;
+        }
+        return libro;
     }
 }

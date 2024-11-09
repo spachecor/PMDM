@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.spachecor.librosmart"
+    namespace = "com.spachecor.navegacionentrepantallasejemplo"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.spachecor.librosmart"
+        applicationId = "com.spachecor.navegacionentrepantallasejemplo"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -59,7 +59,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.gson)
     implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
