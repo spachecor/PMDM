@@ -40,6 +40,13 @@ fun AppNavigation(){
                 it.arguments?.getLong("isbnLibro")
             )
         }
-        /*TODO IR AGREGANDO LAS NUEVAS VISTAS*/
+        composable(
+            route = AppScreens.NuevoLibro.route + "/{nombreLista}",
+            arguments = listOf(navArgument(name = "nombreLista"){
+                type = NavType.StringType
+            })
+        ){
+            NuevoLibro(navController, it.arguments?.getString("nombreLista"))
+        }
     }
 }

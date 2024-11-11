@@ -38,7 +38,7 @@ fun VistaLista(navController: NavController, nombreLista: String?){
             val librosLista = listaService.obtenerLista(nombreLista)
             if(librosLista == null)navController.navigate(AppScreens.HomePage.route)
             BarraNavegacion(librosLista.libros, TipoEntidad.LIBRO, navController)
-            if (nombreLista != null)Titulo(nombreLista)
+            if (nombreLista != null)Titulo(navController, nombreLista)
             LazyColumn {
                 items(librosLista.libros){libro->
                     Card(

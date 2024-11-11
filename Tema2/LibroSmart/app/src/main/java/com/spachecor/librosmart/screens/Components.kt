@@ -160,7 +160,7 @@ fun BottomNavigationBar(navController: NavController) {
             icon = { Icon(Icons.Default.Add, contentDescription = "Nuevo libro") },
             label = { Text("Nuevo libro") },
             selected = false,
-            onClick = { /* Acción para el ícono de buscar */ }
+            onClick = { navController.navigate(AppScreens.NuevoLibro.route+"/") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Settings, contentDescription = "Ajustes") },
@@ -205,7 +205,7 @@ fun Titulo(){
  * Método que define el componente de la fila en al pantalla de la fila con los libros
  */
 @Composable
-fun Titulo(nombre: String){
+fun Titulo(navController: NavController, nombre: String){
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -220,7 +220,7 @@ fun Titulo(nombre: String){
                 fontSize = 24.sp
             )
         )
-        Button(onClick = { println("Me pulsaste!!") }) {
+        Button(onClick = { navController.navigate(AppScreens.NuevoLibro.route + "/" + nombre) }) {
             Icon(
                 Icons.Default.Add,
                 contentDescription = "Agregar nuevo libro",
@@ -304,6 +304,48 @@ fun ListasCard(nombreUno: String, navController: NavController){
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun InfoRow(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            fontSize = 22.sp,  // Aumento de tamaño de letra
+            fontWeight = FontWeight.Bold,  // Negrita en la parte izquierda
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp)
+        )
+        Text(
+            text = value,
+            fontSize = 20.sp,  // Aumento de tamaño de letra
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+@Composable
+fun FormularioRow(label: String, value: @Composable () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp)
+        )
+        Box(
+            modifier = Modifier
+                .weight(2f)
+                .fillMaxWidth()
+        ) {
+            value()
         }
     }
 }

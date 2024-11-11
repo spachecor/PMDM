@@ -115,4 +115,21 @@ public class ListaService {
         }
         return libro;
     }
+    /**
+     * Método que actualiza una lista existente.
+     * @param lista El objeto Lista que contiene los nuevos datos para actualizar.
+     * @return true si la lista fue actualizada correctamente, false en caso contrario.
+     */
+    public boolean actualizarLista(Lista lista) {
+        listas = obtenerListas();
+        for (int i = 0; i < listas.size(); i++) {
+            if (listas.get(i).getNombre().equals(lista.getNombre())) {
+                listas.get(i).setLibros(lista.getLibros());
+                return guardarListas();
+            }
+        }
+        // Si no se encuentra la lista, devolver false
+        return false;
+    }
+
 }
