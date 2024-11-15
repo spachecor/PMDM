@@ -1,7 +1,6 @@
 package com.spachecor.librosmart.model.service;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +28,6 @@ public class ListaService {
         file = new File(context.getFilesDir(), "listas.json");
         gson = new GsonBuilder().setPrettyPrinting().create();
 
-        // Si el archivo no existe, créalo vacío
         if (!file.exists()) {
             listas = new ArrayList<>();
             guardarListas();
@@ -128,7 +126,6 @@ public class ListaService {
                 return guardarListas();
             }
         }
-        // Si no se encuentra la lista, devolver false
         return false;
     }
 
