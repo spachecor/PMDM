@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.spachecor.librosmart.currentFontGlobal
 import com.spachecor.librosmart.listaService
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,12 +57,17 @@ fun DetallesLibro(navController: NavController, nombreLista: String?, isbnLibro:
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = nombreLista ?: "Lista desconocida",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = currentFontGlobal
+                            ),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // Más discreto
                         )
                         Text(
                             text = libro?.titulo ?: "Libro no disponible",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), // Destacado
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontFamily = currentFontGlobal,
+                                fontWeight = FontWeight.Bold
+                            ), // Destacado
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }

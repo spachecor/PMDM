@@ -5,4 +5,5 @@ sealed class AppScreens(val route: String) {
     object VistaLista: AppScreens("vista-lista")
     object NuevoLibro: AppScreens("nuevo-libro")
     object DetallesLibro: AppScreens("detalles-libro")
+    object SettingsPage: AppScreens("settings-page")
 }

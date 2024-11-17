@@ -1,22 +1,20 @@
 package com.spachecor.librosmart.screens
 
+import android.widget.Switch
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
@@ -32,7 +30,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,12 +42,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import com.spachecor.librosmart.listaService
+import com.spachecor.librosmart.currentFontGlobal
 import com.spachecor.librosmart.model.entity.Libro
 import com.spachecor.librosmart.model.entity.Lista
 import com.spachecor.librosmart.model.entity.TipoEntidad
@@ -152,21 +148,36 @@ fun BottomNavigationBar(navController: NavController) {
     NavigationBar {
         NavigationBarItem(
             icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-            label = { Text("Inicio") },
+            label = { Text(
+                text = "Inicio",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = currentFontGlobal
+                )
+            ) },
             selected = false,
             onClick = { navController.navigate(AppScreens.HomePage.route) }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Add, contentDescription = "Nuevo libro") },
-            label = { Text("Nuevo libro") },
+            label = { Text(
+                text = "Nuevo libro",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = currentFontGlobal
+                )
+            ) },
             selected = false,
             onClick = { navController.navigate(AppScreens.NuevoLibro.route+"/") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Settings, contentDescription = "Ajustes") },
-            label = { Text("Ajustes") },
+            label = { Text(
+                text = "Ajustes",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = currentFontGlobal
+                )
+            ) },
             selected = false,
-            onClick = { /* Acción para el ícono de perfil */ }
+            onClick = { navController.navigate(AppScreens.SettingsPage.route) }
         )
     }
 }
@@ -190,7 +201,10 @@ fun Titulo(){
                 fontSize = 24.sp
             )
         )
-        Button(onClick = { println("Me pulsaste!!") }) {
+        Button(
+            onClick = { println("Me pulsaste!!") },
+            shape = MaterialTheme.shapes.small
+        ) {
             Icon(
                 Icons.Default.Add,
                 contentDescription = "Agregar nueva lista",
@@ -220,7 +234,10 @@ fun Titulo(navController: NavController, nombre: String){
                 fontSize = 24.sp
             )
         )
-        Button(onClick = { navController.navigate(AppScreens.NuevoLibro.route + "/" + nombre) }) {
+        Button(
+            onClick = { navController.navigate(AppScreens.NuevoLibro.route + "/" + nombre) },
+            shape = MaterialTheme.shapes.small
+        ) {
             Icon(
                 Icons.Default.Add,
                 contentDescription = "Agregar nuevo libro",
@@ -348,4 +365,12 @@ fun FormularioRow(label: String, value: @Composable () -> Unit) {
             value()
         }
     }
+}
+@Composable
+fun ToggleSwitch(isChecked: Boolean, onToggle: (Boolean) -> Unit, modifier: Modifier){
+    Switch(
+        checked = isChecked,
+        onCheckedChange = { onToggle(it)},
+        modifier = modifier
+    )
 }

@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.spachecor.librosmart.currentFontGlobal
 import com.spachecor.librosmart.listaService
 import com.spachecor.librosmart.model.entity.Libro
 
@@ -77,12 +78,17 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = nombreLista ?: "Lista desconocida",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = currentFontGlobal
+                            ),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // Más discreto
                         )
                         Text(
                             text = "Nuevo libro",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), // Destacado
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontFamily = currentFontGlobal,
+                                fontWeight = FontWeight.Bold
+                            ), // Destacado
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -266,7 +272,8 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(16.dp),
+                        shape = MaterialTheme.shapes.small
                     ) {
                         Text(
                             text = "Guardar",

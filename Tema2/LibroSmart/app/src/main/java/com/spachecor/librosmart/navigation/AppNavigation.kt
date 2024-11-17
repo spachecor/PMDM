@@ -1,15 +1,21 @@
 package com.spachecor.librosmart.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.spachecor.librosmart.model.service.ListaService
 import com.spachecor.librosmart.screens.*
 
 @Composable
-fun AppNavigation(){
+fun AppNavigation(isDarkTheme: MutableState<Boolean>, isCatFont: MutableState<Boolean>, isSquareTheme: MutableState<Boolean>){
     //se encarga de propagar los parámetros entre las pantallas
     val navController = rememberNavController()
     NavHost(
@@ -47,6 +53,23 @@ fun AppNavigation(){
             })
         ){
             NuevoLibro(navController, it.arguments?.getString("nombreLista"))
+        }
+        composable(route = AppScreens.SettingsPage.route){
+            SettingsPage(
+                navController,
+                isDarkTheme = isDarkTheme.value,
+                isCatFont = isCatFont.value,
+                isSquareTheme = isSquareTheme.value,
+                onThemeChange = { isDarkTheme.value = it },
+                onFontChange = {
+                    isCatFont.value = it
+                    if(isCatFont.value)isSquareTheme.value=false
+                    },
+                onSquareThemeChange = {
+                    isSquareTheme.value = it
+                    if(isSquareTheme.value)isCatFont.value=false
+                }
+            )
         }
     }
 }

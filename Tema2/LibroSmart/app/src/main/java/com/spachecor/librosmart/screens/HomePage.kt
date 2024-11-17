@@ -28,13 +28,14 @@ fun HomePage(navController: NavController) {
                 .wrapContentHeight()
                 .padding(innerPadding)
         ) {
-            /*val librosPorLeer = listOf(
+            val librosPorLeer = listOf(
                 Libro(9781234567897, "El principito", "Antoine de Saint-Exupéry", 96, "Un clásico inolvidable."),
                 Libro(9789876543210, "1984", "George Orwell", 328, "Una visión aterradora del futuro."),
                 Libro(9788525043206, "Cien años de soledad", "Gabriel García Márquez", 417, "Una obra maestra del realismo mágico."),
                 Libro(9780140449136, "Crimen y castigo", "Fyodor Dostoevsky", 671, "Profundo y provocador.")
             )
-            listaService.agregarLista(Lista("Por leer", librosPorLeer))*/
+            listaService.agregarLista(Lista("Por leer", librosPorLeer))
+            listaService.agregarLista(Lista("Leídos"))
             val listas = listaService.obtenerTodasListas()
 
             //barra de búsqueda de listas

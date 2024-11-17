@@ -15,6 +15,13 @@ val TimesNewRoman = FontFamily(
     Font(R.font.timesnewromanbolditalic, FontWeight.Bold, FontStyle.Italic)
 )
 
+val AustieBostKittenKlub = FontFamily(
+    Font(R.font.austiebostkittenklub)
+)
+
+val Square = FontFamily(
+    Font(R.font.square)
+)
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(
