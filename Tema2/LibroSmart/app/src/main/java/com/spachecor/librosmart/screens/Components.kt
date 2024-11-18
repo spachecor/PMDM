@@ -1,6 +1,5 @@
 package com.spachecor.librosmart.screens
 
-import android.widget.Switch
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,13 +28,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,10 +44,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.spachecor.librosmart.currentFontGlobal
+import com.spachecor.librosmart.listaService
 import com.spachecor.librosmart.model.entity.Libro
 import com.spachecor.librosmart.model.entity.Lista
 import com.spachecor.librosmart.model.entity.TipoEntidad
@@ -53,11 +57,10 @@ import com.spachecor.librosmart.navigation.AppScreens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BarraNavegacion(elementos: List<Any>, tipoEntidad: TipoEntidad, navController: NavController) {
+fun BarraNavegacion(elementos: List<Any>, tipoEntidad: TipoEntidad, nombreLista: String, navController: NavController) {
     val ctx = LocalContext.current
     var query by rememberSaveable { mutableStateOf("") }
     var active by rememberSaveable { mutableStateOf(false) }
-
 
     Column(
         modifier = Modifier
@@ -118,7 +121,7 @@ fun BarraNavegacion(elementos: List<Any>, tipoEntidad: TipoEntidad, navControlle
                                     modifier = Modifier
                                         .padding(16.dp)
                                         .clickable {
-                                            Toast.makeText(ctx, item.titulo, Toast.LENGTH_SHORT).show()
+                                            navController.navigate(AppScreens.DetallesLibro.route+"/"+nombreLista+"/"+item.isbn)
                                             active = false
                                             query = ""
                                         }
@@ -186,7 +189,11 @@ fun BottomNavigationBar(navController: NavController) {
  * Método que define el componente de la fila en el home con las listas
  */
 @Composable
-fun Titulo(){
+fun Titulo(
+    showDialog: MutableState<Boolean>,
+    inputValue: MutableState<TextFieldValue>,
+    navController: NavController
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -202,7 +209,7 @@ fun Titulo(){
             )
         )
         Button(
-            onClick = { println("Me pulsaste!!") },
+            onClick = { showDialog.value = true },
             shape = MaterialTheme.shapes.small
         ) {
             Icon(
@@ -212,8 +219,72 @@ fun Titulo(){
                 tint = Color.White
             )
         }
+        if (showDialog.value) {
+            var errorMessage by rememberSaveable { mutableStateOf("") }
+
+            AlertDialog(
+                onDismissRequest = {
+                    showDialog.value = false
+                    errorMessage = ""
+                },
+                title = { Text("Introduce el nombre de la nueva lista") },
+                text = {
+                    Column {
+                        // Mensaje de error
+                        if (errorMessage.isNotEmpty()) {
+                            Text(
+                                text = errorMessage,
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+                        // Campo de texto para el nombre de la lista
+                        OutlinedTextField(
+                            value = inputValue.value,
+                            onValueChange = { inputValue.value = it },
+                            label = { Text("Nombre") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val name = inputValue.value.text
+                            when {
+                                name.isEmpty() -> errorMessage = "El nombre no puede estar vacío."
+                                name.length < 3 -> errorMessage = "El nombre debe tener al menos 3 caracteres."
+                                name.length > 10 -> errorMessage = "El nombre no puede tener más de 10 caracteres."
+                                else -> {
+                                    // Si pasa las validaciones, agrega la lista
+                                    listaService.agregarLista(Lista(name))
+                                    showDialog.value = false
+                                    inputValue.value = TextFieldValue("")
+                                    errorMessage = ""
+                                    navController.navigate(AppScreens.HomePage.route)
+                                }
+                            }
+                        }
+                    ) {
+                        Text("Aceptar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showDialog.value = false
+                        inputValue.value = TextFieldValue("")
+                        errorMessage = ""
+                    }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+
     }
 }
+
 
 /**
  * Método que define el componente de la fila en al pantalla de la fila con los libros

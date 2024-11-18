@@ -5,14 +5,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -73,7 +71,7 @@ fun LibroSmartTheme(
         Shapes(
             small = RoundedCornerShape(16.dp),  // Bordes redondeados pequeños
             medium = RoundedCornerShape(4.dp), // Bordes redondeados medianos
-            large = RoundedCornerShape(0.dp)   // Bordes rectos grandes
+            large = RoundedCornerShape(4.dp)   // Bordes rectos grandes
         )
     }
 

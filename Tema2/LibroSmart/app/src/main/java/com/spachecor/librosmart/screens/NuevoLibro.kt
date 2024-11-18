@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,12 +48,17 @@ import androidx.navigation.NavController
 import com.spachecor.librosmart.currentFontGlobal
 import com.spachecor.librosmart.listaService
 import com.spachecor.librosmart.model.entity.Libro
+import com.spachecor.librosmart.model.service.JsonService
+import com.spachecor.librosmart.model.service.ValidadorISBN
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevoLibro(navController: NavController, nombreLista: String?) {
     var listaElegida by remember { mutableStateOf("") }
-    if(nombreLista.isNullOrEmpty())listaElegida = "Seleccione una lista"
+    if (nombreLista.isNullOrEmpty()) listaElegida = "Seleccione una lista"
     else listaElegida = nombreLista
     var isbn by remember { mutableStateOf("") }
     var titulo by remember { mutableStateOf("") }
@@ -61,6 +67,51 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
     var opinion by remember { mutableStateOf("") }
     var expandido by remember { mutableStateOf(false) }
     val listas = listaService.obtenerTodasListas()
+
+    // Variable para manejar la operación de red
+    var loading by remember { mutableStateOf(false) }
+
+    // Definir un Scope para coroutines
+    val coroutineScope = rememberCoroutineScope()
+
+    var errorMessage by remember { mutableStateOf("") }
+
+    fun validateForm(): Boolean {
+        // Validaciones
+        if (listaElegida == "Seleccione una lista") {
+            errorMessage = "Debe seleccionar una lista."
+            return false
+        }
+        if (isbn.length !in listOf(10, 13)) {
+            errorMessage = "El ISBN debe tener 10 o 13 caracteres."
+            return false
+        }
+        if (isbn.toLongOrNull() == null) {
+            errorMessage = "El ISBN debe ser numérico."
+            return false
+        }
+        if(!ValidadorISBN.validarISBN(isbn)){
+            errorMessage = "El ISBN no es válido."
+            return false
+        }
+        if (titulo.isEmpty()) {
+            errorMessage = "El título no puede estar vacío."
+            return false
+        }
+        if (autor.isEmpty()) {
+            errorMessage = "El autor no puede estar vacío."
+            return false
+        }
+        if (nPaginas.isEmpty() || nPaginas.toIntOrNull() == null || nPaginas.toInt() <= 0 || nPaginas.toInt() > 10000) {
+            errorMessage = "El número de páginas debe ser un número entre 1 y 10,000."
+            return false
+        }
+        if (opinion.isEmpty()) {
+            errorMessage = "La opinión no puede estar vacía."
+            return false
+        }
+        return true
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -81,14 +132,14 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontFamily = currentFontGlobal
                             ),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // Más discreto
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                         Text(
                             text = "Nuevo libro",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontFamily = currentFontGlobal,
                                 fontWeight = FontWeight.Bold
-                            ), // Destacado
+                            ),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -111,8 +162,6 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                             .padding(16.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-
-                            // Surface con fondo ligeramente diferente
                             FormularioRow(
                                 label = "Lista:",
                                 value = {
@@ -164,7 +213,7 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(end = 16.dp), // Para evitar que el botón se pegue al borde
+                                            .padding(end = 16.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
@@ -172,11 +221,38 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                                             value = isbn,
                                             onValueChange = { isbn = it },
                                             placeholder = { Text("Ej: 8423309940") },
-                                            modifier = Modifier.weight(1f) // Hace que el TextField ocupe todo el espacio disponible
+                                            modifier = Modifier.weight(1f)
                                         )
                                         IconButton(
-                                            onClick = { /* Método vacío para agregar lógica luego */ },
-                                            modifier = Modifier.size(40.dp) // Tamaño pequeño para el botón
+                                            onClick = {
+                                            /* todo SIGUE SIN FUNCIONAR*/
+                                                if (isbn.toLongOrNull() == null) {
+                                                    errorMessage = "El ISBN debe tener 10 o 13 caracteres."
+                                                }
+                                                else if (isbn.length !in listOf(10, 13)) {
+                                                    errorMessage = "El ISBN debe ser numérico."
+                                                }
+                                                else if(!ValidadorISBN.validarISBN(isbn)){
+                                                    errorMessage = "El ISBN no es válido."
+                                                }else{
+                                                    coroutineScope.launch {
+                                                        // Ejecutar la llamada de red en un hilo en segundo plano
+                                                        val libro = withContext(Dispatchers.IO) {
+                                                            JsonService.obtenerLibroPorISBN(isbn.toLongOrNull())
+                                                        }
+                                                        if (libro != null) {
+                                                            // Si se obtiene un libro, actualizar los campos
+                                                            titulo = libro.titulo
+                                                            autor = libro.autor
+                                                            nPaginas = libro.getnPaginas().toString()
+                                                            errorMessage = ""
+                                                        } else {
+                                                            errorMessage = "No se encontró el libro."
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            modifier = Modifier.size(40.dp)
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Search,
@@ -192,7 +268,7 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                             HorizontalDivider(thickness = 1.dp, color = Color.Gray)
                             Spacer(modifier = Modifier.height(20.dp))
                             FormularioRow(
-                                    label = "Título:",
+                                label = "Título:",
                                 value = {
                                     TextField(
                                         value = titulo,
@@ -246,7 +322,7 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "",
+                            text = errorMessage,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Red,
@@ -256,19 +332,21 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                     }
                     Button(
                         onClick = {
-                            //buscamos la lista en las listas
-                            val lista = listas.find { it.nombre.equals(listaElegida) }
-                            if(lista!=null)lista.libros.add(
-                                Libro(
-                                isbn.toLong(),
-                                titulo,
-                                autor,
-                                nPaginas.toInt(),
-                                opinion
+                            if (validateForm()) {
+                                //buscamos la lista en las listas
+                                val lista = listas.find { it.nombre.equals(listaElegida) }
+                                if (lista != null) lista.libros.add(
+                                    Libro(
+                                        isbn.toLong(),
+                                        titulo,
+                                        autor,
+                                        nPaginas.toInt(),
+                                        opinion
+                                    )
                                 )
-                            )
-                            listaService.actualizarLista(lista)
-                            navController.popBackStack()
+                                listaService.actualizarLista(lista)
+                                navController.popBackStack()
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -278,7 +356,8 @@ fun NuevoLibro(navController: NavController, nombreLista: String?) {
                         Text(
                             text = "Guardar",
                             fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = currentFontGlobal
                         )
                     }
                 }

@@ -2,17 +2,16 @@ package com.spachecor.librosmart.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.spachecor.librosmart.model.service.ListaService
-import com.spachecor.librosmart.screens.*
+import com.spachecor.librosmart.screens.DetallesLibro
+import com.spachecor.librosmart.screens.HomePage
+import com.spachecor.librosmart.screens.NuevoLibro
+import com.spachecor.librosmart.screens.SettingsPage
+import com.spachecor.librosmart.screens.VistaLista
 
 @Composable
 fun AppNavigation(isDarkTheme: MutableState<Boolean>, isCatFont: MutableState<Boolean>, isSquareTheme: MutableState<Boolean>){

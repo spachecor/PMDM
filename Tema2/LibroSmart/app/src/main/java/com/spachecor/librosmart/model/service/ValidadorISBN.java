@@ -38,7 +38,7 @@ public class ValidadorISBN {
                     }
                 }
             } catch (NumberFormatException e) {
-                return false; // El ISBN contiene caracteres inválidos
+                return false;
             }
         }
 
