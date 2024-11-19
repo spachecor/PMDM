@@ -78,8 +78,7 @@ fun DetallesLibro(navController: NavController, nombreLista: String?, isbnLibro:
                             if (libro != null) {
                                 lista.libros.remove(libro)
                                 listaService.actualizarLista(lista)
-                                // Navegar después de la eliminación
-                                navController.navigate(AppScreens.VistaLista.route + "/" + nombreLista)
+                                navController.popBackStack()
                             } else {
                                 navController.navigate(AppScreens.HomePage.route)                            }
                         } else {
