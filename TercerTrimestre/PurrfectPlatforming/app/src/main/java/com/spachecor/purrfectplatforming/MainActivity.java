@@ -1,6 +1,5 @@
-package com.spachecor.ejemplocubojuego;
+package com.spachecor.purrfectplatforming;
 
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;

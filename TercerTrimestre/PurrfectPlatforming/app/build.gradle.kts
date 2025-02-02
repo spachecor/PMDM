@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.spachecor.ejemplocubojuego"
+    namespace = "com.spachecor.purrfectplatforming"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.spachecor.ejemplocubojuego"
+        applicationId = "com.spachecor.purrfectplatforming"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -40,7 +40,4 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    //glide dependencies
-    implementation(libs.glide)
-    annotationProcessor(libs.glide.compiler)
 }
