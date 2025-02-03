@@ -68,20 +68,17 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         setFocusable(true);
         this.context = context;
 
-        // Inicializa la lista de plataformas y añade una plataforma de ejemplo
+        // Inicializa la lista de plataformas y añade algunas de ejemplo:
         plataformas = new ArrayList<>();
-        plataformas.add(new Plataforma(300, 500, 200, 20));
+        // Plataforma "one way": solo bloquea si se viene desde arriba.
+        plataformas.add(new Plataforma(300, 500, 200, 20, Plataforma.PlatformType.ONE_WAY));
+        // Plataforma "solid": bloquea desde todos los lados.
+        plataformas.add(new Plataforma(1000, 500, 200, 20, Plataforma.PlatformType.SOLID));
 
         // Crea el personaje pasándole la animación de "sentado" por defecto
         personaje = new Personaje(context, playerX, playerY, playerWidth, playerHeight, this.gordiSentada);
     }
 
-    /**
-     * Método llamado cuando el Surface está creado.
-     * Se encarga de cargar los sprites y de iniciar el hilo del juego.
-     *
-     * @param holder SurfaceHolder asociado.
-     */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         // Carga los sprites para las animaciones
@@ -91,9 +88,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         thread.start();
     }
 
-    /**
-     * Método para cargar los sprites y configurar las animaciones del personaje.
-     */
     private void cargarSprites() {
         // Arreglos de recursos para las animaciones de caminar a la izquierda y derecha
         int[] gordiCaminandoIzq = {R.drawable.gordicaminandoizq1, R.drawable.gordicaminandoizq2, R.drawable.gordicaminandoizq3, R.drawable.gordicaminandoizq1, R.drawable.gordicaminandoizq2, R.drawable.gordicaminandoizq3};
@@ -110,7 +104,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         this.animCaminandoDcha = new Bitmap[gordiCaminandoDcha.length];
         for (int i = 0; i < gordiCaminandoDcha.length; i++) {
             Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), gordiCaminandoDcha[i]);
-            // Se utiliza un ancho mayor para la animación de caminar (150) para diferenciarla
             this.animCaminandoDcha[i] = Bitmap.createScaledBitmap(bmp, 150, playerHeight, false);
         }
 
@@ -122,29 +115,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * Método llamado cuando la superficie cambia de tamaño o formato.
-     *
-     * @param surfaceHolder El SurfaceHolder.
-     * @param i             Nuevo formato.
-     * @param i1            Nuevo ancho.
-     * @param i2            Nueva altura.
-     */
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder surfaceHolder, int i, int i1, int i2) {
         // No se utiliza en este ejemplo.
     }
 
-    /**
-     * Método llamado cuando se destruye la superficie.
-     * Se encarga de detener el hilo del juego de forma segura.
-     *
-     * @param holder SurfaceHolder asociado.
-     */
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         boolean retry = true;
-        // Intenta detener el hilo del juego de forma segura
         while (retry) {
             try {
                 thread.setRunning(false);
@@ -156,16 +134,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * Método para dibujar en el Canvas.
-     *
-     * @param canvas Canvas en el que se dibuja.
-     */
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
-            // Limpia el canvas con color blanco
             canvas.drawColor(Color.WHITE);
 
             // Dibuja cada una de las plataformas
@@ -178,10 +150,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * Método que actualiza la lógica del juego en cada frame.
-     * Se encarga de la gravedad, salto, colisiones y actualiza la posición del personaje.
-     */
     public void update() {
         // Guarda la posición anterior del personaje para la detección de colisiones
         Rect prevRect = new Rect(playerX, playerY, playerX + playerWidth, playerY + playerHeight);
@@ -190,24 +158,65 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         velocityY += GRAVITY;
         playerY += velocityY;
 
-        // Actualiza la posición del personaje en la instancia de Personaje
+        // Actualiza la posición y animación del personaje
         personaje.setPosition(playerX, playerY);
-        // Actualiza la animación del personaje
         personaje.update();
 
-        // Crea el rectángulo actual del personaje para la detección de colisiones
+        // Rectángulo actual del personaje (después de aplicar la gravedad)
         Rect currentRect = new Rect(playerX, playerY, playerX + playerWidth, playerY + playerHeight);
 
-        // Verifica las colisiones del personaje con cada plataforma
+        // Recorre cada plataforma para detectar y resolver colisiones
         for (Plataforma plat : plataformas) {
-            if (plat.checkCollision(currentRect, prevRect)) {
-                // Si hay colisión, se ajusta la posición del personaje para que "caiga" sobre la plataforma
-                playerY = plat.getY() - playerHeight;
-                velocityY = 0;
-                isJumping = false;
-                personaje.setPosition(playerX, playerY);
-                // Se sale del bucle tras detectar la colisión
-                break;
+            Rect platRect = plat.getRect();
+            if (Rect.intersects(currentRect, platRect)) {
+                if (plat.getType() == Plataforma.PlatformType.ONE_WAY) {
+                    // Para plataformas ONE_WAY solo se bloquea si se viene desde arriba
+                    if (prevRect.bottom <= plat.getY()) {
+                        playerY = plat.getY() - playerHeight;
+                        velocityY = 0;
+                        isJumping = false;
+                        personaje.setPosition(playerX, playerY);
+                    }
+                } else if (plat.getType() == Plataforma.PlatformType.SOLID) {
+                    // Para plataformas SOLID se calcula el solapamiento en cada dirección
+                    int overlapLeft   = currentRect.right - platRect.left;
+                    int overlapRight  = platRect.right - currentRect.left;
+                    int overlapTop    = currentRect.bottom - platRect.top;
+                    int overlapBottom = platRect.bottom - currentRect.top;
+
+                    int minOverlap = Math.min(Math.min(overlapLeft, overlapRight),
+                            Math.min(overlapTop, overlapBottom));
+
+                    if (minOverlap == overlapTop && prevRect.bottom <= platRect.top) {
+                        // Colisión por arriba: aterriza sobre la plataforma
+                        playerY = plat.getY() - playerHeight;
+                        velocityY = 0;
+                        isJumping = false;
+                        personaje.setPosition(playerX, playerY);
+                    } else if (minOverlap == overlapBottom && prevRect.top >= platRect.bottom) {
+                        // Colisión por abajo: choca con la parte inferior de la plataforma
+                        playerY = plat.getY() + plat.getHeight();
+                        if (velocityY < 0) {
+                            velocityY = 0;
+                        }
+                        personaje.setPosition(playerX, playerY);
+                    } else if (minOverlap == overlapLeft || minOverlap == overlapRight) {
+                        // Colisión lateral: se evita que el personaje atraviese la plataforma
+                        // Se usa la posición central para determinar desde qué lado se aproxima el personaje
+                        int playerCenterX = playerX + playerWidth / 2;
+                        int platCenterX = plat.getX() + plat.getWidth() / 2;
+                        if (playerCenterX < platCenterX) {
+                            // El personaje viene desde la izquierda, se posiciona a la izquierda de la plataforma
+                            playerX = plat.getX() - playerWidth;
+                        } else {
+                            // El personaje viene desde la derecha, se posiciona a la derecha de la plataforma
+                            playerX = plat.getX() + plat.getWidth();
+                        }
+                        personaje.setPosition(playerX, playerY);
+                    }
+                }
+                // Actualiza el rectángulo actual tras los ajustes de posición
+                currentRect = new Rect(playerX, playerY, playerX + playerWidth, playerY + playerHeight);
             }
         }
 
@@ -220,10 +229,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * Método para hacer que el personaje salte.
-     * Sólo se permite saltar si el personaje no está ya en el aire.
-     */
     public void jump() {
         if (!isJumping) {
             velocityY = JUMP_FORCE;
@@ -231,68 +236,47 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * Maneja los eventos táctiles en la pantalla.
-     * Se distinguen los toques simples (salto) y los toques prolongados (movimiento lateral).
-     *
-     * @param event Evento táctil.
-     * @return true si se ha procesado el evento.
-     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getActionMasked(); // Maneja correctamente el multitouch
 
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                // Cuando se toca la pantalla inicialmente
-                isHolding = false; // Reinicia la bandera de toque prolongado
-                touchX = event.getX(); // Guarda la posición del toque
+                isHolding = false;
+                touchX = event.getX();
 
-                // Configura un Runnable para manejar el movimiento continuo en caso de toque prolongado
                 moveRunnable = () -> {
-                    isHolding = true; // Marca que se mantiene presionado
+                    isHolding = true;
                     if (touchX < getWidth() / 2) {
-                        // Si el toque es en la mitad izquierda, se mueve a la izquierda
-                        // Se establece la animación de caminar a la izquierda
                         personaje.setCurrentAnimation(animCaminandoIzq);
-                        playerX -= 10; // Mueve el personaje a la izquierda
+                        playerX -= 10;
                     } else {
-                        // Si el toque es en la mitad derecha, se mueve a la derecha
                         personaje.setCurrentAnimation(animCaminandoDcha);
-                        playerX += 10; // Mueve el personaje a la derecha
+                        playerX += 10;
                     }
-                    // Programa la siguiente ejecución del Runnable tras 50 ms
                     handler.postDelayed(moveRunnable, 50);
                 };
 
-                // Se programa el Runnable tras el umbral para diferenciar entre salto y movimiento continuo
                 handler.postDelayed(moveRunnable, HOLD_THRESHOLD);
                 break;
 
             case MotionEvent.ACTION_UP:
-                // Cuando se suelta el toque
-                // Se vuelve a la animación de "sentado"
                 personaje.setCurrentAnimation(animSentada);
-                // Se detiene el Runnable para el movimiento continuo
                 handler.removeCallbacks(moveRunnable);
-                // Si no se ha considerado como toque prolongado, se realiza un salto
                 if (!isHolding) {
                     jump();
                 }
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                // Si se mueve el dedo, se actualiza la posición X del toque
                 touchX = event.getX();
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
-                // Si se detecta un segundo toque (multitáctil), se realiza un salto adicional
                 jump();
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
-                // Opcional: se puede manejar la lógica cuando se levanta un dedo en multitáctil
                 break;
         }
 

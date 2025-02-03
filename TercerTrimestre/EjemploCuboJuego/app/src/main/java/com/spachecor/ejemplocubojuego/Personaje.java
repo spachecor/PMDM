@@ -110,6 +110,9 @@ public class Personaje {
     // Métodos getters para obtener la posición y dimensiones del personaje
     public int getX() { return x; }
     public int getY() { return y; }
+    public void setWidth(int width) {
+        this.width = width;
+    }
     public int getWidth() { return width; }
     public int getHeight() { return height; }
 }
