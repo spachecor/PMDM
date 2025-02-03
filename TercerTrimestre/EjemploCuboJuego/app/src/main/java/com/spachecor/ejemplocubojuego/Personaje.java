@@ -6,79 +6,116 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 
 /**
- * Clase Personaje que representa al jugador.
- * Gestiona la animación, posición y el dibujo del personaje en pantalla.
+ * La clase {@code Personaje} representa al jugador en el juego.
+ * <p>
+ * Esta clase se encarga de gestionar la animación, la posición y el dibujo del personaje en pantalla.
+ * Proporciona métodos para actualizar la animación, cambiar el estado visual (animación), y actualizar la posición.
+ * </p>
  */
 public class Personaje {
-    private Bitmap[] frames; // Arreglo de imágenes para la animación
-    private int currentFrame = 0; // Fotograma actual de la animación
-    private long lastFrameChangeTime = 0; // Último tiempo en que se cambió el fotograma
-    private int frameLengthInMilliseconds = 100; // Duración de cada fotograma en ms
+    // Arreglo de imágenes (frames) que conforman la animación del personaje.
+    private Bitmap[] frames;
+    // Índice del frame actual que se muestra.
+    private int currentFrame = 0;
+    // Último tiempo (en milisegundos) en que se cambió el fotograma.
+    private long lastFrameChangeTime = 0;
+    // Duración en milisegundos que se muestra cada fotograma.
+    private int frameLengthInMilliseconds = 100;
+    // Contexto de la aplicación (necesario para acceder a recursos, por ejemplo).
     private Context context;
 
-    private int x, y; // Posición (X, Y) del personaje
-    private int width, height; // Tamaño (ancho y alto) del personaje
+    // Posición actual del personaje (coordenadas X e Y).
+    private int x, y;
+    // Dimensiones del hitbox del personaje (ancho y alto).
+    private int width, height;
 
     /**
-     * Constructor de la clase Personaje.
+     * Constructor de la clase {@code Personaje}.
      *
      * @param context     Contexto de la aplicación.
-     * @param x           Posición inicial X.
-     * @param y           Posición inicial Y.
-     * @param width       Ancho del personaje.
-     * @param height      Altura del personaje.
-     * @param resourceIds Arreglo de recursos (ID de drawable) para la animación.
+     * @param x           Posición inicial en el eje X.
+     * @param y           Posición inicial en el eje Y.
+     * @param width       Ancho del personaje (usado para el hitbox y escalado de imágenes).
+     * @param height      Altura del personaje (usado para el hitbox y escalado de imágenes).
+     * @param resourceIds Arreglo de IDs de recursos (drawables) que se utilizarán para la animación.
      */
     public Personaje(Context context, int x, int y, int width, int height, int[] resourceIds) {
+        // Inicializa la posición y dimensiones.
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        // Guarda el contexto para poder acceder a los recursos.
         this.context = context;
 
-        // Crea y escala los Bitmaps para cada fotograma de la animación
+        // Crea el arreglo de Bitmaps según la cantidad de recursos recibidos.
         frames = new Bitmap[resourceIds.length];
+        // Recorre cada recurso para decodificar y escalar la imagen.
         for (int i = 0; i < resourceIds.length; i++) {
+            // Decodifica el recurso en un Bitmap.
             frames[i] = BitmapFactory.decodeResource(context.getResources(), resourceIds[i]);
+            // Escala el Bitmap al tamaño especificado (width x height).
             frames[i] = Bitmap.createScaledBitmap(frames[i], width, height, false);
         }
     }
 
     /**
      * Actualiza la animación del personaje.
-     * Cambia de fotograma según el tiempo transcurrido.
+     * <p>
+     * Cambia el fotograma actual en función del tiempo transcurrido desde el último cambio.
+     * </p>
      */
     public void update() {
+        // Obtiene el tiempo actual en milisegundos.
         long currentTime = System.currentTimeMillis();
+        // Se sincroniza el bloque para evitar conflictos en entornos multihilo.
         synchronized (this) {
+            // Si ha pasado suficiente tiempo desde el último cambio de fotograma y existen frames válidos...
             if (currentTime > lastFrameChangeTime + frameLengthInMilliseconds && frames != null && frames.length > 0) {
+                // Se actualiza el índice del frame actual de forma cíclica.
                 currentFrame = (currentFrame + 1) % frames.length;
+                // Se actualiza el tiempo del último cambio de fotograma.
                 lastFrameChangeTime = currentTime;
             }
         }
     }
 
     /**
-     * Dibuja el personaje en el canvas.
+     * Dibuja el personaje en el {@link Canvas} proporcionado.
+     * <p>
+     * Se centra la imagen (sprite) sobre el hitbox del personaje.
+     * Esto permite que, aunque el sprite tenga un ancho mayor (por ejemplo, 150 cuando camina),
+     * se dibuje centrado respecto al hitbox definido (por ejemplo, 100).
+     * </p>
      *
-     * @param canvas Canvas sobre el cual dibujar el personaje.
+     * @param canvas Objeto {@code Canvas} sobre el cual se dibuja el personaje.
      */
     public void draw(Canvas canvas) {
+        // Se sincroniza el bloque para evitar conflictos en entornos multihilo.
         synchronized (this) {
+            // Si el arreglo de frames y el frame actual son válidos...
             if (frames != null && frames[currentFrame] != null) {
-                canvas.drawBitmap(frames[currentFrame], x, y, null);
+                // Se obtiene el ancho real del frame actual (puede ser mayor que el ancho del hitbox).
+                int spriteWidth = frames[currentFrame].getWidth();
+                // Se calcula el offset horizontal para centrar el sprite sobre el hitbox.
+                // Por ejemplo, si el sprite mide 150 y el hitbox 100, offsetX será 25.
+                int offsetX = (spriteWidth - width) / 2;
+                // Se dibuja el bitmap desplazado (x - offsetX) para centrarlo horizontalmente.
+                canvas.drawBitmap(frames[currentFrame], x - offsetX, y, null);
             }
         }
     }
 
     /**
      * Permite cambiar la animación actual del personaje.
-     * Por ejemplo, al cambiar de estado (sentado, caminando, etc.).
+     * <p>
+     * Este método se utiliza, por ejemplo, para cambiar entre estados como "sentado" o "caminando".
+     * </p>
      *
-     * @param newFrames Arreglo de Bitmaps que representan la nueva animación.
+     * @param newFrames Arreglo de {@link Bitmap} que representan la nueva animación.
      */
     public synchronized void setCurrentAnimation(Bitmap[] newFrames) {
-        // Opcional: reiniciar el índice para comenzar la animación desde el inicio.
+        // Opcional: se puede reiniciar el índice para comenzar la animación desde el inicio.
         // this.currentFrame = 0;
         this.frames = newFrames;
     }
@@ -86,33 +123,58 @@ public class Personaje {
     /**
      * Actualiza la posición del personaje.
      *
-     * @param x Nueva posición X.
-     * @param y Nueva posición Y.
+     * @param x Nueva posición en el eje X.
+     * @param y Nueva posición en el eje Y.
      */
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
     }
 
+    // Métodos getters para obtener la posición y dimensiones del personaje
+
     /**
-     * Permite cambiar los recursos (fotogramas) de la animación.
+     * Obtiene la posición X actual del personaje.
      *
-     * @param resourceIds Arreglo de ID de recursos para la nueva animación.
+     * @return La coordenada X.
      */
-    public void setFrames(int[] resourceIds) {
-        this.frames = new Bitmap[resourceIds.length];
-        for (int i = 0; i < resourceIds.length; i++) {
-            frames[i] = BitmapFactory.decodeResource(this.context.getResources(), resourceIds[i]);
-            frames[i] = Bitmap.createScaledBitmap(frames[i], width, height, false);
-        }
+    public int getX() {
+        return x;
     }
 
-    // Métodos getters para obtener la posición y dimensiones del personaje
-    public int getX() { return x; }
-    public int getY() { return y; }
+    /**
+     * Obtiene la posición Y actual del personaje.
+     *
+     * @return La coordenada Y.
+     */
+    public int getY() {
+        return y;
+    }
+
+    /**
+     * Establece un nuevo ancho para el personaje.
+     *
+     * @param width Nuevo ancho.
+     */
     public void setWidth(int width) {
         this.width = width;
     }
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
+
+    /**
+     * Obtiene el ancho actual del personaje.
+     *
+     * @return El ancho.
+     */
+    public int getWidth() {
+        return width;
+    }
+
+    /**
+     * Obtiene la altura actual del personaje.
+     *
+     * @return La altura.
+     */
+    public int getHeight() {
+        return height;
+    }
 }

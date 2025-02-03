@@ -19,6 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Purrfect Platforming"
+rootProject.name = "PurrfectPlatforming"
 include(":app")
- 
