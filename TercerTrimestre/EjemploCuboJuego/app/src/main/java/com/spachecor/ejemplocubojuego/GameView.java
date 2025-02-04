@@ -74,12 +74,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         setFocusable(true);
         this.context = context;
 
-        // Inicializa la lista de plataformas y añade algunas de ejemplo:
+        // Inicializa la lista de plataformas:
         plataformas = new ArrayList<>();
-        // Se añade una plataforma sólida ubicada en (300, 600) con ancho 200 y alto 20.
-        plataformas.add(new Plataforma(300, 600, 200, 20, Plataforma.PlatformType.SOLID));
-        // Se añade otra plataforma sólida ubicada en (1000, 500) con ancho 200 y alto 20.
-        plataformas.add(new Plataforma(1000, 500, 200, 20, Plataforma.PlatformType.SOLID));
 
         // Crea el personaje, asignándole la animación "sentado" por defecto y las posiciones/tamaños iniciales.
         personaje = new Personaje(context, playerX, playerY, playerWidth, playerHeight, this.gordiSentada);
@@ -95,6 +91,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public void surfaceCreated(SurfaceHolder holder) {
         // Carga los sprites para las diferentes animaciones del personaje.
         this.cargarSprites();
+        // Se añade una plataforma sólida ubicada en (300, 600) con ancho 200 y alto 20.
+        //IMPORTANTE DISTANCIA MÁXIMA
+        plataformas.add(new Plataforma(500, this.getHeight()-400, 200, 20, Plataforma.PlatformType.SOLID));
+        // Se añade otra plataforma sólida ubicada en (1000, 500) con ancho 200 y alto 20.
+        plataformas.add(new Plataforma(300, this.getHeight()-200, 200, 20, Plataforma.PlatformType.ONE_WAY));
         // Configura el hilo del juego para que se ejecute.
         thread.setRunning(true);
         // Inicia el hilo del juego.
