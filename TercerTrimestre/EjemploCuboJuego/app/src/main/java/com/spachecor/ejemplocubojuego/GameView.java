@@ -1,12 +1,15 @@
 package com.spachecor.ejemplocubojuego;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -59,6 +62,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     // Lista de plataformas presentes en la pantalla
     private ArrayList<Plataforma> plataformas;
 
+    //Declaro el fondo de la pantalla en bitmap
+    private Bitmap background;
+
+    //Declaramos el enemigo
+    private Enemigo enemigo;
+    private boolean gameOver = false;
+
     /**
      * Constructor de la clase GameView.
      *
@@ -89,16 +99,39 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
      */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        /*
+        * Explicacion de la carga del fondo aqui y de esta manera:
+        * Eficiencia: Se ejecuta solo una vez cuando la superficie está lista.
+        * Evitas Lags: No se hace dentro del bucle de renderizado, lo que mejora el rendimiento.
+        * Seguridad: getWidth() y getHeight() ya tienen valores correctos en surfaceCreated().
+        * */
+        // Configuración de opciones para optimizar el bitmap
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;  // Evita el escalado automático
+        options.inPreferredConfig = Bitmap.Config.RGB_565;  // Reduce el uso de memoria
+
+        // Carga del fondo optimizado
+        Bitmap rawBackground = BitmapFactory.decodeResource(getResources(), R.drawable.fondo, options);
+
+        // Escalar el fondo una sola vez para ajustarlo al tamaño de la pantalla
+        background = Bitmap.createScaledBitmap(rawBackground, getWidth(), getHeight(), false);
+
+        // Libera la memoria del bitmap original sin escalar
+        rawBackground.recycle();
         // Carga los sprites para las diferentes animaciones del personaje.
         this.cargarSprites();
-        // Se añade una plataforma sólida ubicada en (300, 600) con ancho 200 y alto 20.
+        // Se añade una plataforma sólida con ancho 200 y alto 20.
         //IMPORTANTE DISTANCIA MÁXIMA
         plataformas.add(new Plataforma(500, this.getHeight()-400, 200, 20, Plataforma.PlatformType.SOLID));
-        // Se añade otra plataforma sólida ubicada en (1000, 500) con ancho 200 y alto 20.
+        // Se añade otra plataforma sólida con ancho 200 y alto 20.
         plataformas.add(new Plataforma(300, this.getHeight()-200, 200, 20, Plataforma.PlatformType.ONE_WAY));
-        // Configura el hilo del juego para que se ejecute.
-        thread.setRunning(true);
+
+        // Inicializar el enemigo.
+        // Parámetros: contexto, posición X, posición Y, ancho, alto y el recurso drawable del enemigo.
+        enemigo = new Enemigo(context, 100, 100, 100, 100, R.drawable.enemigo);
+
         // Inicia el hilo del juego.
+        thread.setRunning(true);
         thread.start();
     }
 
@@ -182,8 +215,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
-            // Se pinta el fondo con color blanco.
-            canvas.drawColor(Color.WHITE);
+            // Se pinta el fondo
+            Paint paint = new Paint();
+            paint.setFilterBitmap(false);  // Mejora el rendimiento al deshabilitar el filtrado de píxeles
+
+            canvas.drawBitmap(background, 0, 0, paint);
 
             // Se recorren todas las plataformas y se dibujan.
             for (Plataforma plat : plataformas) {
@@ -192,6 +228,17 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
             // Se dibuja el personaje en su posición actual.
             personaje.draw(canvas);
+
+            // Dibujar el enemigo.
+            enemigo.draw(canvas);
+            // Si se produjo el game over, dibuja un mensaje.
+            if (gameOver) {
+                Paint textPaint = new Paint();
+                textPaint.setColor(android.graphics.Color.RED);
+                textPaint.setTextSize(100);
+                // Centrar el mensaje (puedes ajustar las coordenadas)
+                canvas.drawText("Game Over", getWidth()/2 - 200, getHeight()/2, textPaint);
+            }
         }
     }
 
@@ -231,9 +278,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                     }
                 } else if (plat.getType() == Plataforma.PlatformType.SOLID) {
                     // Para plataformas SOLID se calcula el solapamiento en cada dirección:
-                    int overlapLeft   = currentRect.right - platRect.left;
-                    int overlapRight  = platRect.right - currentRect.left;
-                    int overlapTop    = currentRect.bottom - platRect.top;
+                    int overlapLeft = currentRect.right - platRect.left;
+                    int overlapRight = platRect.right - currentRect.left;
+                    int overlapTop = currentRect.bottom - platRect.top;
                     int overlapBottom = platRect.bottom - currentRect.top;
 
                     // Se determina el menor solapamiento para identificar el lado de colisión.
@@ -281,6 +328,26 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             velocityY = 0;
             isJumping = false;
             personaje.setPosition(playerX, playerY);
+        }
+
+        // --- Actualizar y dibujar al enemigo ---
+        enemigo.update(getWidth());
+
+        // Detectar colisión entre el enemigo y el personaje.
+        if (Rect.intersects(enemigo.getRect(), new Rect(playerX, playerY, playerX + playerWidth, playerY + playerHeight))) {
+            // La colisión ocurre: el enemigo "mata" al personaje.
+            gameOver = true;
+            // Detener el hilo del juego.
+            thread.setRunning(false);
+
+            // Programar el cierre de la app a los 5 segundos.
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // Finaliza el Activity que contiene la GameView, cerrando la app.
+                    ((Activity) getContext()).finish();
+                }
+            }, 5000); // 5000 milisegundos = 5 segundos
         }
     }
 
