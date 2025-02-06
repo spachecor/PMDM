@@ -5,7 +5,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -122,7 +121,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         this.cargarSprites();
         // Se añade una plataforma sólida con ancho 200 y alto 20.
         //IMPORTANTE DISTANCIA MÁXIMA
-        plataformas.add(new Plataforma(500, this.getHeight()-400, 200, 20, Plataforma.PlatformType.SOLID));
+        plataformas.add(new Plataforma(500, this.getHeight()-350, 200, 20, Plataforma.PlatformType.SOLID));
         // Se añade otra plataforma sólida con ancho 200 y alto 20.
         plataformas.add(new Plataforma(300, this.getHeight()-200, 200, 20, Plataforma.PlatformType.ONE_WAY));
 
