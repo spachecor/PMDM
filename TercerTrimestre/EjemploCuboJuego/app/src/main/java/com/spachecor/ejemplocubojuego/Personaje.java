@@ -21,8 +21,6 @@ public class Personaje {
     private long lastFrameChangeTime = 0;
     // Duración en milisegundos que se muestra cada fotograma.
     private int frameLengthInMilliseconds = 100;
-    // Contexto de la aplicación (necesario para acceder a recursos, por ejemplo).
-    private Context context;
 
     // Posición actual del personaje (coordenadas X e Y).
     private int x, y;
@@ -45,8 +43,6 @@ public class Personaje {
         this.y = y;
         this.width = width;
         this.height = height;
-        // Guarda el contexto para poder acceder a los recursos.
-        this.context = context;
 
         // Crea el arreglo de Bitmaps según la cantidad de recursos recibidos.
         frames = new Bitmap[resourceIds.length];
